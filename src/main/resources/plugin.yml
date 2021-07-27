@@ -1,0 +1,5 @@
+name: Skript-Repeat
+main: xyz.acrylicstyle.sk.repeat.SkriptRepeat
+depend:
+  - Skript
+version: 1.0.0
