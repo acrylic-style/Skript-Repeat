@@ -4,6 +4,7 @@ import ch.njol.skript.Skript;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.SkriptParser;
 import ch.njol.skript.util.Timespan;
+import ch.njol.skript.variables.Variables;
 import ch.njol.util.Kleenean;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
@@ -13,6 +14,7 @@ import xyz.acrylicstyle.sk.repeat.SkriptRepeat;
 import xyz.acrylicstyle.sk.repeat.util.EffectSection;
 
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("unused")
 public class ConditionRepeat extends EffectSection {
@@ -25,7 +27,11 @@ public class ConditionRepeat extends EffectSection {
 
     @SuppressWarnings("unchecked")
     @Override
-    public boolean init(Expression<?>[] expressions, int i, @NotNull Kleenean kleenean, SkriptParser.@NotNull ParseResult parseResult) {
+    public boolean init(Expression<?> @NotNull [] expressions, int i, @NotNull Kleenean kleenean, SkriptParser.@NotNull ParseResult parseResult) {
+        if (!canExecute()) {
+            Skript.error("Repeat condition doesn't have any content!");
+            return false;
+        }
         times = (Expression<Long>) expressions[0];
         delay = (Expression<Timespan>) expressions[1];
         loadSection(true);
@@ -39,11 +45,18 @@ public class ConditionRepeat extends EffectSection {
 
     @Override
     protected void execute(Event e) {
-        Bukkit.getScheduler().runTaskLater(SkriptRepeat.instance, () -> {
-            long s = Objects.requireNonNull(times.getSingle(e));
-            for (long i = 0; i < s; i++) {
+        AtomicReference<Object> o = new AtomicReference<>(Variables.removeLocals(e));
+        long s = Objects.requireNonNull(times.getSingle(e));
+        for (long i = 0; i < s; i++) {
+            long d = Objects.requireNonNull(delay.getSingle(e)).getTicks_i();
+            Bukkit.getScheduler().runTaskLater(SkriptRepeat.instance, () -> {
+                if (o.get() != null) {
+                    Variables.setLocalVariables(e, o.get());
+                }
                 runSection(e);
-            }
-        }, Objects.requireNonNull(delay.getSingle(e)).getTicks_i());
+                o.set(Variables.removeLocals(e));
+            }, d * i);
+        }
+        Variables.setLocalVariables(e, o.get());
     }
 }
