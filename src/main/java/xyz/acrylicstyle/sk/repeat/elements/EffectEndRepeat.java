@@ -18,11 +18,9 @@ public class EffectEndRepeat extends Effect {
         Skript.registerEffect(EffectEndRepeat.class, "end repeat");
     }
 
-    private ConditionRepeat section;
-
     @Override
     protected void execute(@NotNull Event e) {
-        section.cancel = true;
+        if (!ConditionRepeat.cancelledEvents.contains(e)) ConditionRepeat.cancelledEvents.add(e);
     }
 
     @Override
@@ -37,10 +35,10 @@ public class EffectEndRepeat extends Effect {
             Skript.error("Cannot get current node");
             return false;
         }
-        Node current = n;
+        Node current = n.getParent();
         EffectSection section = null;
-        while (current.getParent() != null) {
-            section = EffectSection.map.get(current.getParent());
+        while (current != null) {
+            section = EffectSection.map.get(current);
             if (section != null) break;
             current = current.getParent();
         }
@@ -48,7 +46,6 @@ public class EffectEndRepeat extends Effect {
             Skript.error("End repeat effect cannot used outside of repeat block");
             return false;
         }
-        this.section = (ConditionRepeat) section;
         return true;
     }
 }

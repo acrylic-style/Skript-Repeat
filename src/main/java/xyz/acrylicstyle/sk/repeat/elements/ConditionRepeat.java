@@ -13,11 +13,15 @@ import org.jetbrains.annotations.Nullable;
 import xyz.acrylicstyle.sk.repeat.SkriptRepeat;
 import xyz.acrylicstyle.sk.repeat.util.EffectSection;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("unused")
 public class ConditionRepeat extends EffectSection {
+    public static final List<Event> cancelledEvents = new ArrayList<>();
+
     static {
         Skript.registerCondition(ConditionRepeat.class, "repeat %number% times with %timespan% delay");
     }
@@ -50,13 +54,19 @@ public class ConditionRepeat extends EffectSection {
         long s = Objects.requireNonNull(times.getSingle(e));
         for (long i = 0; i < s; i++) {
             long d = Objects.requireNonNull(delay.getSingle(e)).getTicks_i();
+            boolean last = i == s - 1;
             Bukkit.getScheduler().runTaskLater(SkriptRepeat.instance, () -> {
-                if (cancel) return;
-                if (o.get() != null) {
-                    Variables.setLocalVariables(e, o.get());
+                if (!cancelledEvents.contains(e)) {
+                    if (o.get() != null) {
+                        Variables.setLocalVariables(e, o.get());
+                    }
+                    runSection(e);
+                    o.set(Variables.removeLocals(e));
                 }
-                runSection(e);
-                o.set(Variables.removeLocals(e));
+                if (last) {
+                    o.set(null);
+                    cancelledEvents.remove(e);
+                }
             }, d * i);
         }
         Variables.setLocalVariables(e, o.get());
