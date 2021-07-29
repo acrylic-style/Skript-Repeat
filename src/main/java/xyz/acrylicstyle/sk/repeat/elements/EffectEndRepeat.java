@@ -40,9 +40,9 @@ public class EffectEndRepeat extends Effect {
         Node current = n;
         EffectSection section = null;
         while (current.getParent() != null) {
-            section = EffectSection.map.get(n.getParent());
+            section = EffectSection.map.get(current.getParent());
             if (section != null) break;
-            current = n.getParent();
+            current = current.getParent();
         }
         if (!(section instanceof ConditionRepeat)) {
             Skript.error("End repeat effect cannot used outside of repeat block");
