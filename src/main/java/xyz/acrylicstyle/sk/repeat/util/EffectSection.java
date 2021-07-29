@@ -12,26 +12,25 @@ import ch.njol.skript.log.RetainingLogHandler;
 import ch.njol.skript.log.SkriptLogger;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.WeakHashMap;
 
 public abstract class EffectSection extends Condition {
+    public static final Map<SectionNode, EffectSection> map = new HashMap<>();
     protected SectionNode section = null;
     private TriggerSection trigger = null;
     private boolean executeNext = true;
-    private final transient Map<Event, Object> current = new WeakHashMap<>();
-    private final transient Map<Event, Iterator<?>> currentIter = new WeakHashMap<>();
 
     public EffectSection() {
         Node n = SkriptLogger.getNode();
         if (!(n instanceof SectionNode)) return;
+        map.put((SectionNode) n, this);
         String comment;
         try {
             Field field = Node.class.getDeclaredField("comment");

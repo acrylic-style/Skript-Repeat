@@ -24,6 +24,7 @@ public class ConditionRepeat extends EffectSection {
 
     private Expression<Long> times;
     private Expression<Timespan> delay;
+    public boolean cancel = false;
 
     @SuppressWarnings("unchecked")
     @Override
@@ -50,6 +51,7 @@ public class ConditionRepeat extends EffectSection {
         for (long i = 0; i < s; i++) {
             long d = Objects.requireNonNull(delay.getSingle(e)).getTicks_i();
             Bukkit.getScheduler().runTaskLater(SkriptRepeat.instance, () -> {
+                if (cancel) return;
                 if (o.get() != null) {
                     Variables.setLocalVariables(e, o.get());
                 }
