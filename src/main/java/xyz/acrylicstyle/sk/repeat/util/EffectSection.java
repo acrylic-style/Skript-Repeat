@@ -5,10 +5,6 @@ import ch.njol.skript.config.SectionNode;
 import ch.njol.skript.lang.Condition;
 import ch.njol.skript.lang.TriggerItem;
 import ch.njol.skript.lang.TriggerSection;
-import ch.njol.skript.log.HandlerList;
-import ch.njol.skript.log.LogHandler;
-import ch.njol.skript.log.ParseLogHandler;
-import ch.njol.skript.log.RetainingLogHandler;
 import ch.njol.skript.log.SkriptLogger;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.NotNull;
@@ -16,8 +12,6 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -48,53 +42,22 @@ public abstract class EffectSection extends Condition {
         } catch (ReflectiveOperationException ignore) {}
     }
 
-    public static void stopLog(RetainingLogHandler logger) {
-        logger.stop();
-        HandlerList handler;
-        try {
-            Field field = SkriptLogger.class.getDeclaredField("handlers");
-            field.setAccessible(true);
-            handler = (HandlerList) field.get(null);
-        } catch (ReflectiveOperationException ignore) {
-            return;
-        }
-        if (handler == null)
-            return;
-        Iterator<LogHandler> it = handler.iterator();
-        List<LogHandler> toStop = new ArrayList<>();
-        while (it.hasNext()) {
-            LogHandler l = it.next();
-            if (l instanceof ParseLogHandler) {
-                toStop.add(l);
-            } else {
-                break;
-            }
-        }
-        toStop.forEach(LogHandler::stop);
-        SkriptLogger.logAll(logger.getLog());
-    }
-
     public void loadSection(boolean setNext) {
         if (section != null) {
-            RetainingLogHandler errors = SkriptLogger.startRetainingLog();
-            try {
-                trigger = new TriggerSection(section) {
-                    @Override
-                    public @NotNull String toString(Event event, boolean b) {
-                        return EffectSection.this.toString(event, b);
-                    }
-
-                    @Override
-                    public TriggerItem walk(@NotNull Event event) {
-                        return walk(event, true);
-                    }
-                };
-                if (setNext) {
-                    trigger.setNext(getNext());
-                    setNext(null);
+            trigger = new TriggerSection(section) {
+                @Override
+                public @NotNull String toString(Event event, boolean b) {
+                    return EffectSection.this.toString(event, b);
                 }
-            } finally {
-                stopLog(errors);
+
+                @Override
+                public TriggerItem walk(@NotNull Event event) {
+                    return walk(event, true);
+                }
+            };
+            if (setNext) {
+                trigger.setNext(getNext());
+                setNext(null);
             }
             section = null;
         }

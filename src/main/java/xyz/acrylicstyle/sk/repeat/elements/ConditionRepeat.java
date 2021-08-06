@@ -32,7 +32,7 @@ public class ConditionRepeat extends EffectSection {
 
     @SuppressWarnings("unchecked")
     @Override
-    public boolean init(Expression<?> @NotNull [] expressions, int i, @NotNull Kleenean kleenean, SkriptParser.@NotNull ParseResult parseResult) {
+    public boolean init(Expression<?>@NotNull[] expressions, int i, @NotNull Kleenean kleenean, SkriptParser.@NotNull ParseResult parseResult) {
         if (!canExecute()) {
             Skript.error("Repeat condition doesn't have any content!");
             return false;
