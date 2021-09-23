@@ -19,14 +19,14 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("unused")
-public class ConditionRepeat extends EffectSection {
+public class EffectRepeat extends EffectSection {
     public static final List<Event> cancelledEvents = new ArrayList<>();
 
     static {
-        Skript.registerCondition(ConditionRepeat.class, "repeat %number% times with %timespan% delay");
+        Skript.registerCondition(EffectRepeat.class, "repeat %number% times with %timespan% delay");
     }
 
-    private Expression<Long> times;
+    private Expression<Number> times;
     private Expression<Timespan> delay;
     public boolean cancel = false;
 
@@ -34,10 +34,9 @@ public class ConditionRepeat extends EffectSection {
     @Override
     public boolean init(Expression<?> @NotNull [] expressions, int i, @NotNull Kleenean kleenean, SkriptParser.@NotNull ParseResult parseResult) {
         if (!canExecute()) {
-            Skript.error("Repeat condition doesn't have any content!");
-            return false;
+            Skript.warning("Useless repeat");
         }
-        times = (Expression<Long>) expressions[0];
+        times = (Expression<Number>) expressions[0];
         delay = (Expression<Timespan>) expressions[1];
         loadSection(true);
         return true;
@@ -50,10 +49,11 @@ public class ConditionRepeat extends EffectSection {
 
     @Override
     protected void execute(Event e) {
+        if (!canExecute()) return;
+        long s = Objects.requireNonNull(times.getSingle(e)).longValue();
+        long d = Objects.requireNonNull(delay.getSingle(e)).getTicks_i();
         AtomicReference<Object> o = new AtomicReference<>(Variables.removeLocals(e));
-        long s = Objects.requireNonNull(times.getSingle(e));
         for (long i = 0; i < s; i++) {
-            long d = Objects.requireNonNull(delay.getSingle(e)).getTicks_i();
             boolean last = i == s - 1;
             Bukkit.getScheduler().runTaskLater(SkriptRepeat.instance, () -> {
                 if (!cancelledEvents.contains(e)) {

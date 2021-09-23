@@ -20,7 +20,7 @@ public class EffectEndRepeat extends Effect {
 
     @Override
     protected void execute(@NotNull Event e) {
-        if (!ConditionRepeat.cancelledEvents.contains(e)) ConditionRepeat.cancelledEvents.add(e);
+        if (!EffectRepeat.cancelledEvents.contains(e)) EffectRepeat.cancelledEvents.add(e);
     }
 
     @Override
@@ -42,7 +42,7 @@ public class EffectEndRepeat extends Effect {
             if (section != null) break;
             current = current.getParent();
         }
-        if (!(section instanceof ConditionRepeat)) {
+        if (!(section instanceof EffectRepeat)) {
             Skript.error("End repeat effect cannot used outside of repeat block");
             return false;
         }
